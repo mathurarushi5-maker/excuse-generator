@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Late Again? Blame the Universe.</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: #fffdf7;
+      color: #1a1614;
+      font-family: 'Georgia', serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 4rem;
+    }
+
+    h1 {
+      font-size: clamp(1.4rem, 3.5vw, 2.2rem);
+      text-align: center;
+      color: #f4511e;
+      margin-bottom: 0.3rem;
+      margin-top: 0.5rem;
+    }
+    .subtitle {
+      font-size: 0.88rem;
+      color: #9a8a84;
+      text-align: center;
+      font-style: italic;
+      margin-bottom: 1.8rem;
+    }
+
+    /* ── Main layout ── */
+    .main {
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
+      max-width: 820px;
+      width: 100%;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* ── Boss panel ── */
+    .boss-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+
+    .boss-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #9a8a84;
+      margin-top: 0.6rem;
+    }
+
+    .boss-svg-wrap {
+      position: relative;
+      width: 130px;
+      height: 150px;
+    }
+
+    #boss-svg {
+      width: 130px;
+      height: 150px;
+    }
+
+    /* shake animation for chaos mode */
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20% { transform: translateX(-3px) rotate(-1deg); }
+      40% { transform: translateX(3px) rotate(1deg); }
+      60% { transform: translateX(-2px); }
+      80% { transform: translateX(2px); }
+    }
+    .boss-svg-wrap.shaking { animation: shake 0.5s ease infinite; }
+
+    .speech-bubble {
+      background: #fff3eb;
+      border: 1.5px solid #f0d5c8;
+      border-radius: 12px;
+      padding: 0.7rem 1rem;
+      font-size: 0.82rem;
+      color: #1a1614;
+      line-height: 1.5;
+      max-width: 160px;
+      text-align: center;
+      position: relative;
+      font-style: italic;
+      transition: border-color 0.3s;
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .speech-bubble::before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-bottom-color: #f0d5c8;
+    }
+    .speech-bubble.chaos { border-color: #e91e8c; }
+    .speech-bubble.chaos::before { border-bottom-color: #e91e8c; }
+    .speech-bubble.mild  { border-color: #0ea5e9; }
+    .speech-bubble.mild::before  { border-bottom-color: #0ea5e9; }
+
+    /* ── Right panel ── */
+    .right-panel {
+      flex: 1;
+      min-width: 280px;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    /* ── Controls ── */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      flex-wrap: wrap;
+    }
+    .slider-group { display: flex; flex-direction: column; gap: 0.4rem; flex:1; min-width: 160px; }
+    .slider-label { font-size: 0.75rem; color: #9a8a84; text-transform: uppercase; letter-spacing: 1px; }
+    .slider-row { display: flex; align-items: center; gap: 0.6rem; }
+    .slider-end {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.15rem;
+      white-space: nowrap;
+    }
+    .slider-end .slider-emoji { font-size: 1.6rem; line-height: 1; }
+    .slider-end .slider-label-text { font-size: 0.65rem; color: #9a8a84; letter-spacing: 0.5px; }
+    .slider-value { font-size: 1rem; font-weight: bold; color: #f4511e; min-width: 1.5rem; text-align: center; }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      flex: 1;
+      height: 5px;
+      border-radius: 3px;
+      background: #f0d5c8;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: #f4511e;
+      cursor: pointer;
+      border: 2px solid #fffdf7;
+    }
+
+    .btn {
+      background: #1a1614;
+      color: #fffdf7;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-size: 0.95rem;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.1s, background 0.2s;
+      white-space: nowrap;
+    }
+    .btn:hover { background: #d13a0d; }
+    .btn:active { transform: scale(0.97); }
+
+    /* ── Dice button ── */
+    .dice-btn {
+      width: 76px;
+      height: 76px;
+      background: #1a1614;
+      border: none;
+      border-radius: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 0 #0a0807;
+      transition: box-shadow 0.1s, transform 0.1s;
+      padding: 0;
+    }
+    .dice-btn:hover { background: #f4511e; box-shadow: 0 4px 0 #a33d1e; }
+    .dice-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #0a0807; }
+    .dice-face { width: 52px; height: 52px; }
+
+    @keyframes tumble {
+      0%   { transform: rotate(0deg)   scale(1);    }
+      20%  { transform: rotate(-25deg) scale(1.12); }
+      45%  { transform: rotate(18deg)  scale(0.93); }
+      65%  { transform: rotate(-12deg) scale(1.06); }
+      82%  { transform: rotate(6deg)   scale(0.98); }
+      100% { transform: rotate(0deg)   scale(1);    }
+    }
+    .dice-btn.rolling { animation: tumble 0.45s ease; }
+
+    .btn-sm {
+      background: #fff3eb;
+      color: #1a1614;
+      border: 1px solid #f0d5c8;
+      padding: 0.45rem 1rem;
+      font-size: 0.82rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-sm:hover { background: #f5d5c0; }
+
+    /* ── Excuse card ── */
+    .card {
+      background: #fff3eb;
+      border: 1px solid #f0d5c8;
+      border-radius: 14px;
+      padding: 1.8rem 1.5rem;
+      height: 220px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      transition: border-color 0.3s;
+    }
+    .card.chaos { border-color: #e91e8c; }
+    .card.mild  { border-color: #0ea5e9; }
+
+    .level-badge {
+      position: absolute;
+      top: -13px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #f4511e;
+      color: #1a1614;
+      font-size: 0.7rem;
+      font-weight: bold;
+      padding: 0.18rem 0.85rem;
+      border-radius: 99px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+    .card.chaos .level-badge { background: #e91e8c; color: #fffdf7; }
+    .card.mild  .level-badge { background: #0ea5e9; color: #fffdf7; }
+
+    .excuse-text {
+      font-size: clamp(0.95rem, 2vw, 1.15rem);
+      line-height: 1.7;
+      color: #1a1614;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+    .excuse-text.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── Log row ── */
+    .log-row {
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .log-row.visible { opacity: 1; pointer-events: all; }
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .action-btn {
+      flex: 1;
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1.5px solid;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .copy-action-btn { background: #fff3eb; border-color: #f0d5c8; color: #1a1614; }
+    .copy-action-btn:hover { background: #f5d5c0; transform: translateY(-1px); }
+    .copy-action-btn.copied { background: #d4f7d4; border-color: #86efac; }
+    .log-action-btn { background: #1a1614; border-color: #1a1614; color: #fffdf7; }
+    .log-action-btn:hover { background: #333; transform: translateY(-1px); }
+    .action-btn:active { transform: translateY(0); }
+    .log-corner-btn {
+      background: #fff3eb;
+      border: 1px solid #f0d5c8;
+      border-radius: 10px;
+      padding: 0.4rem 0.65rem;
+      font-size: 1.15rem;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      line-height: 1;
+    }
+    .log-corner-btn:hover { background: #f5d5c0; transform: scale(1.08); }
+    .log-corner-btn:active { transform: scale(0.94); }
+    .outcome-prompt {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .outcome-label {
+      font-size: 0.65rem;
+      color: #9a8a84;
+      white-space: nowrap;
+    }
+    .outcome-btn { font-size: 0.9rem; padding: 0.2rem 0.4rem; }
+
+    /* ── Personality picker ── */
+    .personality-picker {
+      display: flex;
+      gap: 0.3rem;
+      margin-top: 0.3rem;
+    }
+    .personality-btn {
+      background: #fff3eb;
+      border: 1px solid #f0d5c8;
+      border-radius: 8px;
+      padding: 0.2rem 0.45rem;
+      font-size: 1rem;
+      cursor: pointer;
+      opacity: 0.45;
+      transition: opacity 0.15s, border-color 0.15s, transform 0.1s;
+    }
+    .personality-btn:hover { opacity: 0.8; transform: scale(1.1); }
+    .personality-btn.active { opacity: 1; border-color: #f4511e; }
+
+    /* ── Outcome in tracker ── */
+    .outcome-cell { white-space: nowrap; }
+    .outcome-pick {
+      background: none;
+      border: 1px solid #f0d5c8;
+      border-radius: 6px;
+      padding: 0.15rem 0.35rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      margin-right: 0.2rem;
+      transition: background 0.12s, transform 0.1s;
+    }
+    .outcome-pick:hover { background: #fff3eb; transform: scale(1.15); }
+    .outcome-set { font-size: 0.8rem; font-weight: 600; padding: 0.15rem 0.4rem; border-radius: 6px; }
+    .outcome-set.won { background: #d4f7d4; color: #166534; }
+    .outcome-set.lost { background: #fee2e2; color: #991b1b; }
+    .log-toast {
+      font-size: 0.78rem;
+      color: #9a8a84;
+      text-align: right;
+      height: 1rem;
+      transition: opacity 0.3s;
+    }
+
+    /* ── Tracker ── */
+    .tracker-section {
+      max-width: 820px;
+      width: 100%;
+      margin-top: 2rem;
+    }
+
+    .tracker-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fff3eb;
+      border: 1px solid #f0d5c8;
+      border-radius: 10px;
+      padding: 0.8rem 1.2rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .tracker-toggle:hover { border-color: #e0b8a0; }
+    .tracker-toggle-title { font-size: 0.9rem; color: #f4511e; font-weight: bold; }
+    .tracker-toggle-meta { font-size: 0.8rem; color: #9a8a84; }
+    .chevron { font-size: 0.8rem; color: #9a8a84; transition: transform 0.2s; }
+    .chevron.open { transform: rotate(180deg); }
+
+    .tracker-body {
+      display: none;
+      border: 1px solid #f0d5c8;
+      border-top: none;
+      border-radius: 0 0 10px 10px;
+      overflow: hidden;
+    }
+    .tracker-body.open { display: block; }
+
+    .tracker-empty {
+      padding: 1.5rem;
+      text-align: center;
+      color: #9a8a84;
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+
+    .tracker-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    .tracker-table th {
+      background: #fde8d8;
+      color: #9a7060;
+      text-align: left;
+      padding: 0.6rem 1rem;
+      font-weight: normal;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-size: 0.72rem;
+    }
+    .tracker-table td {
+      padding: 0.65rem 1rem;
+      border-top: 1px solid #f5d5c0;
+      vertical-align: middle;
+    }
+    .tracker-table tr:hover td { background: #fff3eb; }
+    .excuse-preview { color: #1a1614; max-width: 300px; }
+    .excuse-preview-short { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .target-name {
+      background: #fde8d8;
+      border-radius: 99px;
+      padding: 0.15rem 0.6rem;
+      font-size: 0.75rem;
+      color: #1a1614;
+      white-space: nowrap;
+    }
+    .count-pill {
+      background: #f4511e;
+      color: #1a1614;
+      border-radius: 99px;
+      padding: 0.15rem 0.6rem;
+      font-size: 0.75rem;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    .count-pill.hi { background: #e91e8c; color: #fffdf7; }
+    .tracker-footer {
+      padding: 0.6rem 1rem;
+      border-top: 1px solid #f5d5c0;
+      text-align: right;
+    }
+
+    .hint { font-size: 0.78rem; color: #9a8a84; font-style: italic; text-align: center; margin-top: 0.5rem; }
+
+    /* ── Emoji ── */
+    .emoji-burst { font-size: 3.2rem; margin-bottom: 0.6rem; display: block; }
+
+    /* ── Rank bar ── */
+    .rank-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: #fff3eb;
+      border: 1px solid #f0d5c8;
+      border-radius: 10px;
+      padding: 0.55rem 1rem;
+      max-width: 820px;
+      width: 100%;
+      flex-wrap: wrap;
+    }
+    .rank-icon { font-size: 1.4rem; flex-shrink: 0; }
+    .rank-info { flex: 1; min-width: 120px; }
+    .rank-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; color: #9a8a84; }
+    .rank-name { font-size: 0.95rem; font-weight: bold; color: #f4511e; }
+    .xp-row { display: flex; align-items: center; gap: 0.5rem; flex: 1; min-width: 120px; }
+    .xp-label { font-size: 0.72rem; color: #9a8a84; white-space: nowrap; }
+    .xp-bar-bg { flex: 1; height: 6px; background: #f0d5c8; border-radius: 3px; overflow: hidden; }
+    .xp-bar { height: 100%; background: #f4511e; border-radius: 3px; transition: width 0.5s ease; }
+    .xp-val { font-size: 0.78rem; font-weight: bold; color: #f4511e; white-space: nowrap; }
+
+    /* ── Trust meter ── */
+    .trust-wrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      margin-top: 0.2rem;
+    }
+    .trust-label-row {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 160px;
+      font-size: 0.68rem;
+      color: #9a8a84;
+    }
+    .trust-val { font-weight: bold; color: #f4511e; }
+    .trust-bg {
+      width: 100%;
+      max-width: 160px;
+      height: 8px;
+      background: #f0d5c8;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .trust-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.6s ease, background 0.6s ease;
+    }
+
+    /* ── Achievement toast ── */
+    .ach-toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #1a1614;
+      color: #fffdf7;
+      border-radius: 12px;
+      padding: 0.8rem 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.85rem;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+      z-index: 999;
+      max-width: 280px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    }
+    .ach-toast.show { opacity: 1; transform: translateY(0); }
+    .ach-toast-icon { font-size: 1.8rem; flex-shrink: 0; }
+    .ach-toast-title { font-weight: bold; font-size: 0.82rem; color: #f4511e; margin-bottom: 0.1rem; }
+    .ach-toast-desc { font-size: 0.75rem; color: #ccc; }
+
+    /* ── Fired state ── */
+    .fired-btn {
+      background: #e91e8c;
+      color: #fff;
+      border: none;
+      padding: 0.4rem 1rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      margin-top: 0.4rem;
+      font-weight: bold;
+    }
+    .fired-btn:hover { background: #c01070; }
+  </style>
+</head>
+<body>
+
+  <h1>Late Again?<br>Blame the Universe.</h1>
+  <p class="subtitle">A generator of increasingly unhinged excuses — with your boss's live reaction</p>
+
+  <!-- Rank bar -->
+  <div class="rank-bar" id="rank-bar">
+    <span class="rank-icon" id="rank-icon">🎓</span>
+    <div class="rank-info">
+      <div class="rank-title">Your Rank</div>
+      <div class="rank-name" id="rank-name">Intern</div>
+    </div>
+    <div class="xp-row">
+      <span class="xp-label">XP</span>
+      <div class="xp-bar-bg"><div class="xp-bar" id="xp-bar" style="width:0%"></div></div>
+      <span class="xp-val" id="xp-val">0</span>
+    </div>
+  </div>
+
+  <div class="main" style="margin-top:1.2rem">
+
+    <!-- Boss panel -->
+    <div class="boss-panel">
+      <span class="boss-label">Your Boss</span>
+      <div class="personality-picker">
+        <button class="personality-btn active" id="pers-micromanager" onclick="setPersonality('micromanager')" title="Micromanager">🧐</button>
+        <button class="personality-btn" id="pers-chill" onclick="setPersonality('chill')" title="Chill">😎</button>
+        <button class="personality-btn" id="pers-passive" onclick="setPersonality('passive')" title="Passive-Aggressive">🤐</button>
+      </div>
+      <div class="boss-svg-wrap" id="boss-wrap">
+        <svg id="boss-svg" viewBox="0 0 130 150" xmlns="http://www.w3.org/2000/svg">
+          <!-- Suit body -->
+          <rect x="20" y="118" width="90" height="32" rx="8" fill="#1e2a3a"/>
+          <!-- Tie -->
+          <polygon points="65,115 60,125 65,145 70,125" fill="#c0392b"/>
+          <!-- Shirt collar -->
+          <polygon points="52,115 65,122 65,115" fill="#fffffe"/>
+          <polygon points="78,115 65,122 65,115" fill="#f0f0f0"/>
+          <!-- Head -->
+          <ellipse id="head" cx="65" cy="72" rx="38" ry="42" fill="#f4c892"/>
+          <!-- Hair -->
+          <path d="M27,65 Q28,28 65,26 Q102,28 103,65 Q95,40 65,38 Q35,40 27,65Z" fill="#3d2b1f"/>
+          <!-- Ears -->
+          <ellipse cx="27" cy="72" rx="7" ry="9" fill="#e8b07a"/>
+          <ellipse cx="103" cy="72" rx="7" ry="9" fill="#e8b07a"/>
+          <!-- Glasses frame -->
+          <rect id="glass-l" x="32" y="65" width="24" height="16" rx="5" fill="none" stroke="#3d2b1f" stroke-width="2"/>
+          <rect id="glass-r" x="74" y="65" width="24" height="16" rx="5" fill="none" stroke="#3d2b1f" stroke-width="2"/>
+          <line x1="56" y1="73" x2="74" y2="73" stroke="#3d2b1f" stroke-width="1.5"/>
+          <line x1="32" y1="73" x2="26" y2="71" stroke="#3d2b1f" stroke-width="1.5"/>
+          <line x1="98" y1="73" x2="104" y2="71" stroke="#3d2b1f" stroke-width="1.5"/>
+          <!-- Eyes (pupils inside glasses) -->
+          <circle id="eye-l" cx="44" cy="73" r="5" fill="#fffffe"/>
+          <circle id="pupil-l" cx="44" cy="73" r="2.5" fill="#2c2c2c"/>
+          <circle id="eye-r" cx="86" cy="73" r="5" fill="#fffffe"/>
+          <circle id="pupil-r" cx="86" cy="73" r="2.5" fill="#2c2c2c"/>
+          <!-- Eyebrows -->
+          <path id="brow-l" d="M34,63 Q44,59 54,62" stroke="#3d2b1f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path id="brow-r" d="M76,62 Q86,59 96,63" stroke="#3d2b1f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <!-- Mouth -->
+          <path id="mouth" d="M52,98 Q65,104 78,98" stroke="#b5651d" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <!-- Sweat drops (hidden by default) -->
+          <ellipse id="sweat1" cx="108" cy="58" rx="4" ry="6" fill="#3da9fc" opacity="0"/>
+          <ellipse id="sweat2" cx="114" cy="70" rx="3" ry="5" fill="#3da9fc" opacity="0"/>
+          <!-- Vein pop (hidden by default) -->
+          <path id="vein" d="M98,52 Q103,48 108,52 Q106,56 101,55Z" fill="#e53170" opacity="0"/>
+        </svg>
+      </div>
+      <div class="speech-bubble" id="speech">
+        Generate an excuse to see my reaction...
+      </div>
+      <div class="trust-wrap">
+        <div class="trust-label-row">
+          <span>Boss Trust</span>
+          <span class="trust-val" id="trust-val">100%</span>
+        </div>
+        <div class="trust-bg">
+          <div class="trust-fill" id="trust-fill" style="width:100%;background:#22c55e"></div>
+        </div>
+        <button class="fired-btn" id="recover-btn" onclick="recover()" style="display:none">😅 Grovel & Recover</button>
+      </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="right-panel">
+      <div class="controls">
+        <div class="slider-group">
+          <span class="slider-label">Desperation Level — <span class="slider-value" id="level-display">3</span></span>
+          <div class="slider-row">
+            <span class="slider-end">
+              <span class="slider-emoji">😶</span>
+              <span class="slider-label-text">Calm</span>
+            </span>
+            <input type="range" id="level" min="1" max="10" value="3">
+            <span class="slider-end">
+              <span class="slider-emoji">🤯</span>
+              <span class="slider-label-text">Unhinged</span>
+            </span>
+          </div>
+        </div>
+        <button class="dice-btn" id="dice-btn" onclick="rollDice()" title="Roll for an excuse">
+          <svg class="dice-face" id="dice-face" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+            <rect width="50" height="50" rx="10" fill="none"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="card" id="card">
+        <span class="level-badge" id="badge">Ready</span>
+        <p class="excuse-text" id="excuse">Hit the button and let the universe explain itself.</p>
+      </div>
+      <div class="card-actions" id="card-actions" style="display:none">
+        <button class="action-btn copy-action-btn" id="copy-btn" onclick="copyExcuse()">📄 Copy</button>
+        <button class="action-btn log-action-btn" id="log-row" onclick="logExcuse()">📋 Log it</button>
+      </div>
+      <div class="log-toast" id="log-toast"></div>
+    </div>
+  </div>
+
+  <!-- Tracker -->
+  <div class="tracker-section">
+    <div class="tracker-toggle" onclick="toggleTracker()">
+      <span class="tracker-toggle-title">📋 Excuse Tracker</span>
+      <span>
+        <span class="tracker-toggle-meta" id="tracker-meta">No entries yet</span>
+        &nbsp;<span class="chevron" id="chevron">▼</span>
+      </span>
+    </div>
+    <div class="tracker-body" id="tracker-body">
+      <div class="tracker-empty" id="tracker-empty">
+        Log an excuse after generating one — it'll show up here.
+      </div>
+      <table class="tracker-table" id="tracker-table" style="display:none">
+        <thead>
+          <tr>
+            <th>Excuse</th>
+            <th>Times used</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tracker-tbody"></tbody>
+      </table>
+      <div class="tracker-footer" id="tracker-footer" style="display:none">
+        <button class="btn-sm" onclick="clearTracker()">Clear all</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="hint" style="margin-top:1rem">Slide right for increasingly creative explanations.</p>
+
+  <!-- Achievement toast -->
+  <div class="ach-toast" id="ach-toast">
+    <span class="ach-toast-icon" id="ach-icon">🏆</span>
+    <div>
+      <div class="ach-toast-title" id="ach-title"></div>
+      <div class="ach-toast-desc" id="ach-desc"></div>
+    </div>
+  </div>
+
+  <script>
+    /* ── Excuse data ── */
+    const excuses = {
+      low: [
+        // Actually usable — say with a straight face
+        { emoji: "🚗", text: "My car won't start. I've called roadside assistance and I'm waiting for them to get here." },
+        { emoji: "🤒", text: "I woke up with a high fever and body aches. I don't think I should come in — I don't want to pass it around." },
+        { emoji: "🏥", text: "I have a doctor's appointment that I completely forgot to flag on the calendar. It ran much longer than expected." },
+        { emoji: "🚌", text: "There's a signal failure on the metro line — service is suspended and there are no buses available on the alternate route either." },
+        { emoji: "👦", text: "My child's school just called — they're running a fever and I need to go pick them up right away." },
+        { emoji: "🪠", text: "A pipe burst in my apartment overnight. The plumber can't come until this morning and I need to be here when they arrive." },
+        { emoji: "🦷", text: "I've had severe tooth pain since last night and managed to get an emergency dentist slot this morning. I'll be in as soon as it's done." },
+        { emoji: "🛑", text: "There's been a major accident on the highway — traffic is completely blocked in both directions. I'm not moving at all." },
+        { emoji: "😷", text: "I tested positive this morning. I'll isolate and work remotely, but I can't come in." },
+        { emoji: "🧪", text: "I've had food poisoning since last night. I'll spare you the details, but I genuinely cannot make it in today." },
+        { emoji: "👨‍👩‍👧", text: "There's a family emergency I'm dealing with right now. I'll update you as soon as I have more clarity." },
+        { emoji: "🏛️", text: "I received a jury duty summons. I'm at the courthouse — it's mandatory and I couldn't defer it." },
+        { emoji: "🌐", text: "My internet is completely down and the technician can only come in the morning window. I'll dial in from my phone for the call." },
+        { emoji: "🤕", text: "I've had a bad headache since 3am and can barely look at a screen right now. I'll try to be online later if it eases up." },
+        { emoji: "💧", text: "My upstairs neighbor's bathroom flooded and it's coming through my ceiling. I'm waiting for the building manager." },
+        { emoji: "🚙", text: "I had a minor fender-bender on the way in. Everyone is fine, but I'm dealing with the paperwork and insurance right now." },
+        { emoji: "🔌", text: "The power went out overnight and didn't come back until late — my phone died, my alarm didn't go off. I'm on my way now." },
+        { emoji: "😰", text: "I'm not doing great mentally today. I'd like to take a personal day if that's okay — I'll make sure everything is covered." },
+        { emoji: "🤧", text: "I've come down with a bad cold — runny nose, sore throat, the works. I'd rather not breathe on anyone today." },
+        { emoji: "🏠", text: "My landlord scheduled a mandatory inspection this morning and I wasn't notified until last night. I have to be present." },
+        { emoji: "💉", text: "I have a blood test appointment first thing — my doctor said I have to fast beforehand so I can't push it." },
+        { emoji: "🎒", text: "My child's school has a holiday today that I only found out about last night. I have no childcare cover." },
+        { emoji: "🦺", text: "There's construction blocking the only road into my area. The diversion adds over an hour each way." },
+        { emoji: "😮‍💨", text: "I had an allergic reaction this morning — not severe, but I'm waiting for the antihistamines to kick in before I can drive." },
+        { emoji: "👴", text: "I need to help an elderly relative with a hospital appointment. They don't have anyone else and I can't leave them to manage alone." },
+        { emoji: "🪑", text: "My back went out this morning — I can barely stand up straight, let alone drive or sit at a desk for hours." },
+        { emoji: "👁️", text: "I've woken up with conjunctivitis. My eye is completely swollen shut — I need to get to a pharmacy before I can do anything." },
+        { emoji: "🛂", text: "I have a passport appointment this morning that I booked months ago. The next available slot is in six weeks — I can't reschedule." },
+        { emoji: "🕯️", text: "I've had a bereavement in the family. I'll need a few days — I'll send a proper note once things are a bit more settled." },
+        { emoji: "🚗", text: "I've got a flat tyre. I'm waiting by the side of the road for someone to come and help — I didn't realise until I was already out." },
+        { emoji: "💳", text: "I woke up to a fraud alert on my bank account. I've had to freeze my cards and I'm on hold with the bank right now." },
+        { emoji: "💊", text: "I have a prescription I need to collect before the pharmacy closes for the afternoon — my doctor called it in urgently last night." },
+        { emoji: "🔧", text: "I have a mandatory annual gas safety inspection this morning. The engineer's window is 8–12 and I have to be home for it." },
+        { emoji: "🏫", text: "I have a parent-teacher meeting this morning that I couldn't move — it was the only slot available and my child's teacher specifically requested it." },
+        { emoji: "✈️", text: "My flight back was delayed overnight. I only landed this morning and haven't slept — I'll be in once I've had a few hours." },
+        { emoji: "🏠", text: "The estate agent has viewings at my flat this morning and I need to be out of the way — I wasn't given much notice." },
+        { emoji: "📦", text: "My movers arrived three hours late and I can't leave the flat unattended. I'll head in as soon as they're done." },
+        { emoji: "🚰", text: "There's a water outage in my area — the council says it'll be restored by midday. I can't get ready without it." },
+        { emoji: "🚨", text: "There's been a gas leak in my building. We've been evacuated and we're waiting outside for the engineers to give the all-clear." },
+        { emoji: "🤢", text: "I have a stomach bug — it came on suddenly last night. I'll be resting and working from home if I'm able to." },
+        { emoji: "😖", text: "I'm dealing with severe period pain this morning. I've taken medication and I'm hoping to be online within a couple of hours." },
+        { emoji: "😵‍💫", text: "I've been having dizzy spells since I woke up — I don't think it's safe for me to drive or be on screen just yet." },
+        { emoji: "🤸", text: "I had a fall last night and my wrist is quite swollen. I'm at the walk-in clinic waiting to find out if it needs an X-ray." },
+        { emoji: "🎓", text: "My child has a school performance this morning that I committed to months ago. I'll be in right after — it ends at 10." },
+        { emoji: "🐾", text: "My cat stopped eating two days ago and I finally got an urgent vet slot this morning. I couldn't leave it any longer." },
+        { emoji: "📞", text: "The hospital called with my test results and asked me to come in for a follow-up this morning. I didn't want to wait." },
+        { emoji: "🔑", text: "My car key fob stopped working and the spare is at my parents'. I'm arranging to get it before I can drive anywhere." },
+        { emoji: "🛡️", text: "My home was broken into overnight. The police are here taking a report and I need to wait for a locksmith to secure the door." },
+        { emoji: "🌡️", text: "My child has a fever of 39°C and I can't send them to school. I haven't been able to arrange cover yet — working on it now." },
+        { emoji: "🩺", text: "I have a specialist appointment I waited three months for. I can't cancel — I'll be in right after." },
+      ],
+      mid: [
+        // Plausible — needs a little selling
+        { emoji: "🔑", text: "I accidentally locked myself out. The locksmith is here now, but it took two hours to get someone to come." },
+        { emoji: "🐕", text: "My dog ate something he shouldn't have and I had to rush him to the vet. He's going to be fine, but it was a whole morning." },
+        { emoji: "📱", text: "My alarm didn't go off — I think my phone updated overnight and reset everything. My entire morning schedule collapsed." },
+        { emoji: "🌊", text: "There was massive flooding on my usual route and every alternate road is backed up. I've been rerouting for an hour." },
+        { emoji: "🏢", text: "My building had a fire drill that lasted over an hour — we couldn't re-enter until the all-clear. Not my call." },
+        { emoji: "🧺", text: "My washing machine broke mid-cycle and I had literally nothing dry to wear. I had to wait for the dryer to finish." },
+        { emoji: "🛗", text: "My building's elevator is broken and I live on the 12th floor. I'm fine, just slightly dead inside." },
+        { emoji: "🤙", text: "A close friend is going through a crisis and called me at 6am. I couldn't hang up — they needed someone." },
+        { emoji: "👶", text: "My child absolutely refused to go to school today. It turned into a full negotiation. We've reached a settlement." },
+        { emoji: "🧠", text: "I had a therapy appointment I forgot to block on my calendar. I can't reschedule with less than 24 hours notice." },
+        { emoji: "🚿", text: "My water heater stopped working this morning. Cold shower at 7am — I needed a moment to recover from that experience." },
+        { emoji: "📦", text: "A courier delivered something I urgently needed to the wrong address. I've spent the last hour chasing it across two postcodes." },
+        { emoji: "🌧️", text: "The rain was so bad this morning that visibility was near zero. I genuinely couldn't drive safely and had to wait it out." },
+        { emoji: "🏥", text: "I had to drop a family member at the hospital — nothing critical, just precautionary, but I had to stay until they were settled." },
+        { emoji: "🗺️", text: "My phone's GPS sent me an entirely wrong route and I ended up 40 minutes in the opposite direction before I noticed." },
+        { emoji: "💻", text: "My laptop wouldn't boot this morning and I spent an hour trying to recover it before I could join from my phone." },
+        { emoji: "🐈", text: "My cat knocked an entire glass of water onto my keyboard. I've been trying to revive it with rice. The prognosis is unclear." },
+        { emoji: "🚂", text: "I missed my train by literally ten seconds — I watched it pull away. The next one isn't for another hour." },
+        { emoji: "😴", text: "My neighbor's dog barked until 3am and I genuinely got about two hours of sleep. I overslept completely." },
+        { emoji: "🛗", text: "I got stuck in a lift for forty minutes this morning. Maintenance got me out but I needed a few minutes after." },
+        { emoji: "☕", text: "I spilled an entire coffee on myself right as I was leaving. Had to go back in and start the morning over." },
+        { emoji: "🔋", text: "My car battery died overnight. I've jump-started it but need to drive around for a bit before it's safe to park again." },
+        { emoji: "📬", text: "I had to sign for an important legal document being delivered this morning — the window was 8–10am and I couldn't leave." },
+        { emoji: "🧯", text: "My smoke alarm went off at 5am for no reason and I couldn't get it to stop for an hour. I'm running entirely on cortisol right now." },
+        { emoji: "🦟", text: "Something bit me overnight and my hand has swollen up. I'm at the clinic waiting to be seen — it looks worse than it probably is." },
+      ],
+      high: [
+        // Creative/absurd — for the brave
+        { emoji: "🕳️", text: "I discovered a wormhole in my closet. It only goes to 2003, so I had to wait for it to cycle back. On the bright side, I remember Beyoncé's first solo album now." },
+        { emoji: "🧿", text: "My house plants staged a coordinated silent protest and blocked the front door. I didn't want to escalate. We're still negotiating." },
+        { emoji: "🌌", text: "The simulation lagged. You probably noticed. My sector was particularly affected and I was stuck between frames for a solid twenty minutes." },
+        { emoji: "🪩", text: "I accidentally walked into a flash mob rehearsal and they needed exactly my body type for the formation. Legally I couldn't just leave." },
+        { emoji: "🧲", text: "My keys became magnetically attracted to my fridge and I had to research the physics of the situation before I could leave. The fridge won, initially." },
+        { emoji: "👁️", text: "A crow dropped a shiny object on my doorstep, which according to three different Reddit threads is either a blessing or a warning. I spent twenty minutes figuring out which." },
+        { emoji: "🔄", text: "I walked through my front door and came out a neighbor's back door. We're both very confused. Their dog seems fine about it." },
+        { emoji: "🫧", text: "I reached into my bag and my hand came out in a different dimension. Getting it back took longer than expected and I had to re-sync my watch afterward." },
+        { emoji: "🦆", text: "A family of ducks blocked my driveway and honestly? They seemed to have a whole agenda. I respected it." },
+        { emoji: "☕", text: "My coffee maker had an existential crisis. It brewed half a cup and then just... stopped. I had to have a talk with it." },
+        { emoji: "🔮", text: "A street astrologer told me Mercury is in retrograde and that I specifically should not make decisions before 10am. I took it seriously." },
+        { emoji: "🌀", text: "My building's elevator got philosophical mid-floor and refused to commit to going up or down for eleven minutes." },
+        { emoji: "🚲", text: "I got my jacket stuck in someone else's bicycle. They were very understanding. I was not." },
+        { emoji: "📱", text: "My phone's GPS took me on a 'scenic route' that I can only describe as its revenge." },
+        { emoji: "🐈", text: "My neighbor's cat sat on my laptop, changed my calendar to a different timezone, and sent a cryptic reply to my team. I was doing damage control." },
+        { emoji: "🦛", text: "There was a hippo on my commute. I understand this raises more questions than it answers. I don't have all of them." },
+        { emoji: "🌮", text: "A food truck spontaneously parked in front of my building and the queue blocked my car in. I couldn't leave. I did eat very well though." },
+        { emoji: "🐿️", text: "A squirrel got into my flat, relocated my keys, and I had to conduct a full investigation to find them. The squirrel is gone. The keys have been found. No comment on the rest." },
+        { emoji: "🪞", text: "I walked past a mirror and my reflection didn't follow for about three seconds. I had to sit with that for a while before I felt okay to drive." },
+        { emoji: "🎪", text: "A circus convoy was parked on my street for reasons nobody could explain. Traffic was moving but I genuinely could not look away for twenty minutes." },
+        { emoji: "🌡️", text: "My smart thermostat decided 4am was a great time to update its firmware and set the heating to 34°C. I woke up in a tropical climate and couldn't function." },
+        { emoji: "🐐", text: "A goat was on my car roof. It seemed very settled. The situation required patience and eventually a biscuit." },
+        { emoji: "🎻", text: "A street violinist set up directly outside my door and played the same four bars for forty minutes. I could not leave without disrupting a clearly emotional moment. I waited." },
+        { emoji: "🧦", text: "I found a sock I've been looking for since February. The discovery led to a reorganization of my entire wardrobe. I don't fully regret it." },
+        { emoji: "🤖", text: "My Roomba trapped me in the kitchen for twenty minutes by blocking the only exit and refusing to reroute. I've since updated its firmware. We are no longer friends." },
+      ]
+    };
+
+    /* ── Boss reactions ── */
+    const allBossLines = {
+      micromanager: {
+        low:   ["Acceptable. I've logged it.", "Fine. I'll need that in writing.", "Don't let it happen again. I'm tracking.", "I'll allow it. Barely.", "Noted. Calendar invite me next time."],
+        mid:   ["That's… specific. Suspicious, even.", "I need supporting documents for this.", "Hmm. I am logging this formally.", "Really. I have follow-up questions.", "Send me a detailed incident report."],
+        high:  ["Excuse me? Excuse me?!", "That is not in the employee handbook.", "I need to escalate this to HR.", "I'm auditing your entire schedule.", "This goes in the performance review. Verbatim."],
+        chaos: ["I don't even— WHAT?!", "My spreadsheet CANNOT handle this.", "I'm calling HR. And Legal. And possibly NASA.", "I need to lie down and re-read my management training."],
+      },
+      chill: {
+        low:   ["No worries, we're totally good!", "Happens to everyone, see you soon!", "Take your time, seriously no stress.", "All good! Just ping me when you're here.", "Life happens, don't sweat it."],
+        mid:   ["Oof, rough morning huh? You good?", "That's wild, okay! See you when you're here.", "Lol okay, glad you're alright-ish.", "I mean, fair enough honestly.", "Yikes! Glad you're okay-ish though."],
+        high:  ["Bro… what? 😂 Okay then.", "I'm not even gonna ask. Just come in.", "Okay then, vibes.", "You're something else, I swear.", "lmao okay, that's a new one."],
+        chaos: ["💀💀💀", "I genuinely cannot 😂", "You are actually unhinged and I respect it.", "My guy, what is going ON in your life?"],
+      },
+      passive: {
+        low:   ["Sure. Fine. Whatever.", "I *guess* that's acceptable.", "*deep breath* ...Okay.", "That's fine. I'll cover for you. Again.", "No, no, it's fine. Really. Totally fine."],
+        mid:   ["Wow. Okay then.", "Sure, that 'happens'. To you. Often.", "Must be nice, honestly.", "Not that anyone ELSE would do that, but...", "Take your time. It's not like we have deadlines."],
+        high:  ["...No comment.", "I'm sure that's true.", "How. Convenient.", "Of course that happened. To you specifically.", "Sure. Sure sure sure."],
+        chaos: ["I'm not dignifying that with a response.", "Sure. That happened. Totally.", "Cool. Cool cool cool. Completely normal.", "I have no words. None. Zero. Goodbye."],
+      },
+    };
+    let currentPersonality = 'micromanager';
+    let bossLines = allBossLines[currentPersonality];
+
+    function setPersonality(p) {
+      currentPersonality = p;
+      bossLines = allBossLines[p];
+      document.querySelectorAll('.personality-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('pers-' + p).classList.add('active');
+    }
+
+    /* ── Boss face states ── */
+    function setBossState(level) {
+      const wrap = document.getElementById('boss-wrap');
+      const browL = document.getElementById('brow-l');
+      const browR = document.getElementById('brow-r');
+      const mouth = document.getElementById('mouth');
+      const eyeL = document.getElementById('eye-l');
+      const eyeR = document.getElementById('eye-r');
+      const pupilL = document.getElementById('pupil-l');
+      const pupilR = document.getElementById('pupil-r');
+      const sweat1 = document.getElementById('sweat1');
+      const sweat2 = document.getElementById('sweat2');
+      const vein = document.getElementById('vein');
+
+      wrap.classList.remove('shaking');
+
+      if (level <= 3) {
+        // Skeptical — one brow up, thin pursed smile
+        browL.setAttribute('d', 'M34,63 Q44,60 54,62');
+        browR.setAttribute('d', 'M76,58 Q86,55 96,60');
+        mouth.setAttribute('d', 'M55,98 Q65,96 75,98');
+        eyeL.setAttribute('r', '5'); eyeR.setAttribute('r', '5');
+        pupilL.setAttribute('cx','44'); pupilR.setAttribute('cx','86');
+        sweat1.setAttribute('opacity','0'); sweat2.setAttribute('opacity','0'); vein.setAttribute('opacity','0');
+      } else if (level <= 6) {
+        // Suspicious — both brows raised, slight frown
+        browL.setAttribute('d', 'M34,60 Q44,55 54,58');
+        browR.setAttribute('d', 'M76,58 Q86,55 96,60');
+        mouth.setAttribute('d', 'M52,100 Q65,97 78,100');
+        eyeL.setAttribute('r', '6'); eyeR.setAttribute('r', '6');
+        pupilL.setAttribute('cx','43'); pupilR.setAttribute('cx','87');
+        sweat1.setAttribute('opacity','0.5'); sweat2.setAttribute('opacity','0');
+        vein.setAttribute('opacity','0');
+      } else if (level <= 8) {
+        // Aghast — wide eyes, mouth open
+        browL.setAttribute('d', 'M34,57 Q44,51 54,55');
+        browR.setAttribute('d', 'M76,55 Q86,51 96,57');
+        mouth.setAttribute('d', 'M55,95 Q65,108 75,95');
+        eyeL.setAttribute('r', '7'); eyeR.setAttribute('r', '7');
+        pupilL.setAttribute('cx','42'); pupilR.setAttribute('cx','88');
+        sweat1.setAttribute('opacity','1'); sweat2.setAttribute('opacity','0.7');
+        vein.setAttribute('opacity','0');
+      } else {
+        // UNHINGED — eyes max, mouth agape, shake + vein
+        browL.setAttribute('d', 'M34,54 Q44,47 54,52');
+        browR.setAttribute('d', 'M76,52 Q86,47 96,54');
+        mouth.setAttribute('d', 'M53,93 Q65,112 77,93');
+        eyeL.setAttribute('r', '8'); eyeR.setAttribute('r', '8');
+        pupilL.setAttribute('cx','41'); pupilR.setAttribute('cx','89');
+        sweat1.setAttribute('opacity','1'); sweat2.setAttribute('opacity','1');
+        vein.setAttribute('opacity','1');
+        wrap.classList.add('shaking');
+      }
+    }
+
+    /* ── State ── */
+    /* ── Dice faces ── */
+    const DICE_DOTS = {
+      1: [[25, 25]],
+      2: [[14, 14], [36, 36]],
+      3: [[14, 14], [25, 25], [36, 36]],
+      4: [[14, 14], [36, 14], [14, 36], [36, 36]],
+      5: [[14, 14], [36, 14], [25, 25], [14, 36], [36, 36]],
+      6: [[14, 11], [36, 11], [14, 25], [36, 25], [14, 39], [36, 39]],
+    };
+
+    function renderDiceFace(n) {
+      const svg = document.getElementById('dice-face');
+      svg.innerHTML = DICE_DOTS[n].map(([cx, cy]) =>
+        `<circle cx="${cx}" cy="${cy}" r="4.5" fill="#fffdf7"/>`
+      ).join('');
+    }
+
+    function rollDice() {
+      const btn = document.getElementById('dice-btn');
+      btn.classList.remove('rolling');
+      void btn.offsetWidth; // reflow to restart animation
+      btn.classList.add('rolling');
+      btn.disabled = true;
+
+      // Flicker through faces during roll
+      let ticks = 0;
+      const flicker = setInterval(() => {
+        renderDiceFace(Math.ceil(Math.random() * 6));
+        ticks++;
+        if (ticks >= 6) {
+          clearInterval(flicker);
+          const final = Math.ceil(Math.random() * 6);
+          renderDiceFace(final);
+          generate();
+        }
+      }, 60);
+
+      btn.addEventListener('animationend', () => {
+        btn.classList.remove('rolling');
+        btn.disabled = false;
+      }, { once: true });
+    }
+
+    let currentExcuse = null;
+    let trackerOpen = false;
+    let logToastTimer = null;
+
+    /* ── Generate ── */
+    function generate() {
+      const level = parseInt(document.getElementById('level').value);
+      let pool;
+      if (level <= 3) pool = excuses.low;
+      else if (level <= 7) pool = excuses.mid;
+      else pool = excuses.high;
+
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      currentExcuse = pick;
+
+      // Card
+      const card = document.getElementById('card');
+      const badge = document.getElementById('badge');
+      const excuseEl = document.getElementById('excuse');
+
+      card.className = 'card ' + (level >= 8 ? 'chaos' : level <= 3 ? 'mild' : '');
+      badge.textContent = getBadgeLabel(level);
+
+      excuseEl.classList.remove('visible');
+      setTimeout(() => {
+        excuseEl.innerHTML = `<span class="emoji-burst">${pick.emoji}</span>${pick.text}`;
+        excuseEl.classList.add('visible');
+      }, 200);
+
+      // Boss
+      setBossState(level);
+      let lines;
+      if (level <= 3) lines = bossLines.low;
+      else if (level <= 6) lines = bossLines.mid;
+      else if (level <= 8) lines = bossLines.high;
+      else lines = bossLines.chaos;
+
+      const speech = document.getElementById('speech');
+      speech.textContent = lines[Math.floor(Math.random() * lines.length)];
+      speech.className = 'speech-bubble ' + (level >= 8 ? 'chaos' : level <= 3 ? 'mild' : '');
+
+      // Show action buttons
+      document.getElementById('card-actions').style.display = 'flex';
+      document.getElementById('copy-btn').textContent = '📄 Copy';
+      document.getElementById('copy-btn').classList.remove('copied');
+      document.getElementById('log-row').style.display = '';
+      document.getElementById('log-toast').textContent = '';
+    }
+
+    function getBadgeLabel(level) {
+      if (level <= 3) return "✅ Actually Usable";
+      if (level <= 6) return "🤔 Needs Some Selling";
+      if (level <= 8) return "🫣 Full Send";
+      return "🤯 COMPLETELY UNHINGED";
+    }
+
+    document.getElementById('level').addEventListener('input', function() {
+      document.getElementById('level-display').textContent = this.value;
+    });
+
+    /* ── Ranks ── */
+    const RANKS = [
+      { min: 0,   max: 49,  icon: '🎓', name: 'Intern' },
+      { min: 50,  max: 149, icon: '📎', name: 'Associate' },
+      { min: 150, max: 299, icon: '🏅', name: 'Senior Excuse Officer' },
+      { min: 300, max: 499, icon: '💼', name: 'VP of Lateness' },
+      { min: 500, max: Infinity, icon: '👑', name: 'Chief Absence Officer' },
+    ];
+
+    /* ── Achievements ── */
+    const ACHIEVEMENTS = [
+      { id: 'first',    icon: '🎯', title: 'First Offense',    desc: 'Logged your very first excuse.' },
+      { id: 'smooth5',  icon: '💬', title: 'Smooth Talker',    desc: 'Logged 5 totally believable excuses.' },
+      { id: 'chaos3',   icon: '🌀', title: 'Chaos Agent',      desc: 'Logged 3 completely unhinged excuses.' },
+      { id: 'repeat',   icon: '🔄', title: 'Repeat Offender',  desc: 'Used the same excuse on the same person 3 times.' },
+      { id: 'method10', icon: '🎭', title: 'Method Actor',     desc: 'Logged 10 unique excuses.' },
+      { id: 'thinIce',  icon: '🧊', title: 'On Thin Ice',      desc: 'Boss trust dropped below 20%.' },
+      { id: 'comeback', icon: '🔥', title: 'The Comeback',     desc: 'Recovered after being fired.' },
+    ];
+
+    /* ── Game state ── */
+    function getState() {
+      try { return JSON.parse(localStorage.getItem('excuse-state') || '{}'); }
+      catch { return {}; }
+    }
+    function saveState(s) { localStorage.setItem('excuse-state', JSON.stringify(s)); }
+
+    function getGameState() {
+      const s = getState();
+      return {
+        xp: s.xp || 0,
+        trust: s.trust !== undefined ? s.trust : 100,
+        unlocked: s.unlocked || [],
+        lowCount: s.lowCount || 0,
+        chaosCount: s.chaosCount || 0,
+      };
+    }
+
+    function updateRankUI(xp) {
+      const rank = RANKS.find(r => xp >= r.min && xp <= r.max) || RANKS[RANKS.length - 1];
+      const next = RANKS.find(r => r.min > xp);
+      document.getElementById('rank-icon').textContent = rank.icon;
+      document.getElementById('rank-name').textContent = rank.name;
+      document.getElementById('xp-val').textContent = xp;
+      const pct = next ? Math.round(((xp - rank.min) / (next.min - rank.min)) * 100) : 100;
+      document.getElementById('xp-bar').style.width = pct + '%';
+    }
+
+    function updateTrustUI(trust) {
+      const pct = Math.max(0, Math.min(100, trust));
+      const fill = document.getElementById('trust-fill');
+      const val = document.getElementById('trust-val');
+      const btn = document.getElementById('recover-btn');
+      fill.style.width = pct + '%';
+      fill.style.background = pct > 60 ? '#22c55e' : pct > 30 ? '#f59e0b' : '#ef4444';
+      val.textContent = pct + '%';
+      val.style.color = pct > 60 ? '#16a34a' : pct > 30 ? '#d97706' : '#dc2626';
+      if (pct <= 0) {
+        document.getElementById('speech').textContent = 'Pack your things. WE ARE DONE.';
+        document.getElementById('speech').className = 'speech-bubble chaos';
+        btn.style.display = 'block';
+      } else {
+        btn.style.display = 'none';
+      }
+    }
+
+    function launchConfetti() {
+      const canvas = document.getElementById('confetti-canvas');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      canvas.style.display = 'block';
+      const ctx = canvas.getContext('2d');
+      const colors = ['#f4511e','#e91e8c','#0ea5e9','#22c55e','#f59e0b','#a855f7'];
+      const pieces = Array.from({length: 90}, () => ({
+        x: Math.random() * canvas.width, y: -20,
+        r: Math.random() * 6 + 3,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        vx: (Math.random() - 0.5) * 5,
+        vy: Math.random() * 3 + 2,
+        angle: Math.random() * 360,
+        spin: (Math.random() - 0.5) * 6,
+        rect: Math.random() > 0.5,
+      }));
+      let frame = 0;
+      function tick() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => {
+          p.x += p.vx; p.y += p.vy; p.vy += 0.08; p.angle += p.spin;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.angle * Math.PI / 180);
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = Math.max(0, 1 - frame / 80);
+          if (p.rect) ctx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r);
+          else { ctx.beginPath(); ctx.arc(0, 0, p.r, 0, Math.PI * 2); ctx.fill(); }
+          ctx.restore();
+        });
+        if (++frame < 90) requestAnimationFrame(tick);
+        else { ctx.clearRect(0, 0, canvas.width, canvas.height); canvas.style.display = 'none'; }
+      }
+      tick();
+    }
+
+    function showAchievement(ach) {
+      document.getElementById('ach-icon').textContent = ach.icon;
+      document.getElementById('ach-title').textContent = '🏆 ' + ach.title;
+      document.getElementById('ach-desc').textContent = ach.desc;
+      const toast = document.getElementById('ach-toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3500);
+      launchConfetti();
+    }
+
+    function checkAchievements(gs, log, tier) {
+      const s = getState();
+      const unlocked = s.unlocked || [];
+      const toCheck = [];
+
+      if (!unlocked.includes('first') && log.length >= 1)
+        toCheck.push('first');
+      if (!unlocked.includes('smooth5') && gs.lowCount >= 5)
+        toCheck.push('smooth5');
+      if (!unlocked.includes('chaos3') && gs.chaosCount >= 3)
+        toCheck.push('chaos3');
+      const unique = new Set(log.map(e => e.text)).size;
+      if (!unlocked.includes('method10') && unique >= 10)
+        toCheck.push('method10');
+      const repeats = log.filter(e => e.count >= 3);
+      if (!unlocked.includes('repeat') && repeats.length >= 1)
+        toCheck.push('repeat');
+      if (!unlocked.includes('thinIce') && gs.trust < 20)
+        toCheck.push('thinIce');
+
+      if (toCheck.length) {
+        s.unlocked = [...unlocked, ...toCheck];
+        saveState(s);
+        // Show first newly unlocked
+        const ach = ACHIEVEMENTS.find(a => a.id === toCheck[0]);
+        if (ach) setTimeout(() => showAchievement(ach), 600);
+      }
+    }
+
+    function recover() {
+      const s = getState();
+      s.trust = 30;
+      const unlocked = s.unlocked || [];
+      if (!unlocked.includes('comeback')) {
+        s.unlocked = [...unlocked, 'comeback'];
+        const ach = ACHIEVEMENTS.find(a => a.id === 'comeback');
+        if (ach) setTimeout(() => showAchievement(ach), 400);
+      }
+      saveState(s);
+      updateTrustUI(30);
+      document.getElementById('speech').textContent = '...Fine. One more chance. Don\'t make me regret this.';
+      document.getElementById('speech').className = 'speech-bubble';
+    }
+
+    /* ── Tracker (localStorage) ── */
+    function getLog() {
+      try { return JSON.parse(localStorage.getItem('excuse-log') || '[]'); }
+      catch { return []; }
+    }
+    function saveLog(log) { localStorage.setItem('excuse-log', JSON.stringify(log)); }
+
+    function logExcuse() {
+      if (!currentExcuse) return;
+      const log = getLog();
+      const level = parseInt(document.getElementById('level').value);
+      const tier = level <= 3 ? 'low' : level <= 7 ? 'mid' : 'high';
+
+      const idx = log.findIndex(e => e.text === currentExcuse.text);
+      if (idx >= 0) {
+        log[idx].count++;
+        log[idx].lastUsed = new Date().toLocaleDateString();
+      } else {
+        log.unshift({ text: currentExcuse.text, emoji: currentExcuse.emoji, count: 1, tier,
+          lastUsed: new Date().toLocaleDateString() });
+      }
+      saveLog(log);
+
+      // Game state update
+      const s = getState();
+      const xpGain = tier === 'low' ? 10 : tier === 'mid' ? 25 : 50;
+      const trustDmg = tier === 'low' ? -8 : tier === 'mid' ? -18 : -35;
+      s.xp = (s.xp || 0) + xpGain;
+      s.trust = Math.max(0, ((s.trust !== undefined ? s.trust : 100) + trustDmg));
+      s.lowCount = (s.lowCount || 0) + (tier === 'low' ? 1 : 0);
+      s.chaosCount = (s.chaosCount || 0) + (tier === 'high' ? 1 : 0);
+      saveState(s);
+
+      updateRankUI(s.xp);
+      updateTrustUI(s.trust);
+      checkAchievements({ ...s, trust: s.trust }, log, tier);
+      renderTracker();
+
+      const toast = document.getElementById('log-toast');
+      if (logToastTimer) clearTimeout(logToastTimer);
+      toast.textContent = `+${xpGain} XP · Logged!`;
+      toast.style.opacity = '1';
+      logToastTimer = setTimeout(() => { toast.style.opacity = '0'; }, 2500);
+
+    }
+
+    function recordOutcome(idx, result) {
+      const log = getLog();
+      if (idx < 0 || idx >= log.length) return;
+      log[idx].outcome = result;
+      saveLog(log);
+      renderTracker();
+    }
+
+    function copyExcuse() {
+      if (!currentExcuse) return;
+      const btn = document.getElementById('copy-btn');
+      const markCopied = () => {
+        btn.textContent = '✅ Copied!';
+        btn.classList.add('copied');
+        const toast = document.getElementById('log-toast');
+        toast.textContent = 'Copied to clipboard!';
+        toast.style.opacity = '1';
+        if (logToastTimer) clearTimeout(logToastTimer);
+        logToastTimer = setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+        setTimeout(() => { btn.textContent = '📄 Copy'; btn.classList.remove('copied'); }, 2000);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(currentExcuse.text).then(markCopied).catch(() => fallbackCopy());
+      } else {
+        fallbackCopy();
+      }
+      function fallbackCopy() {
+        const ta = document.createElement('textarea');
+        ta.value = currentExcuse.text;
+        ta.style.cssText = 'position:fixed;opacity:0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        markCopied();
+      }
+    }
+
+    function renderTracker() {
+      const log = getLog();
+      const meta = document.getElementById('tracker-meta');
+      const empty = document.getElementById('tracker-empty');
+      const table = document.getElementById('tracker-table');
+      const tbody = document.getElementById('tracker-tbody');
+      const footer = document.getElementById('tracker-footer');
+
+      const total = log.reduce((s, e) => s + e.count, 0);
+      const rated = log.filter(e => e.outcome);
+      const won = log.filter(e => e.outcome === 'won').length;
+      const successRate = rated.length > 0 ? Math.round((won / rated.length) * 100) : null;
+      meta.textContent = log.length > 0
+        ? `${log.length} unique · ${total} uses${successRate !== null ? ` · ${successRate}% success rate` : ''}`
+        : 'No entries yet';
+
+      if (log.length === 0) {
+        empty.style.display = 'block';
+        table.style.display = 'none';
+        footer.style.display = 'none';
+        return;
+      }
+
+      empty.style.display = 'none';
+      table.style.display = 'table';
+      footer.style.display = 'block';
+
+      tbody.innerHTML = log.map((e, i) => `
+        <tr>
+          <td class="excuse-preview">
+            <span style="font-size:1.1rem;margin-right:0.4rem">${e.emoji}</span>
+            <span class="excuse-preview-short">${e.text}</span>
+          </td>
+          <td><span class="count-pill${e.count >= 3 ? ' hi' : ''}">${e.count}×</span></td>
+          <td class="outcome-cell">
+            ${e.outcome === 'won'
+              ? '<span class="outcome-set won">👍 Worked</span>'
+              : e.outcome === 'lost'
+              ? '<span class="outcome-set lost">👎 Busted</span>'
+              : `<button class="outcome-pick" onclick="recordOutcome(${i},'won')">👍</button><button class="outcome-pick" onclick="recordOutcome(${i},'lost')">👎</button>`
+            }
+          </td>
+          <td><button class="btn-sm" onclick="deleteEntry(${i})" title="Remove">✕</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function deleteEntry(i) {
+      const log = getLog();
+      log.splice(i, 1);
+      saveLog(log);
+      renderTracker();
+    }
+
+    function clearTracker() {
+      if (!confirm('Clear all logged excuses?')) return;
+      localStorage.removeItem('excuse-log');
+      renderTracker();
+    }
+
+    function toggleTracker() {
+      trackerOpen = !trackerOpen;
+      document.getElementById('tracker-body').classList.toggle('open', trackerOpen);
+      document.getElementById('chevron').classList.toggle('open', trackerOpen);
+    }
+
+    function escHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // Init
+    renderDiceFace(Math.ceil(Math.random() * 6));
+    renderTracker();
+    const _gs = getGameState();
+    updateRankUI(_gs.xp);
+    updateTrustUI(_gs.trust);
+  </script>
+  <canvas id="confetti-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;display:none"></canvas>
+</body>
+</html>
